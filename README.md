@@ -20,7 +20,7 @@ CDJ350など日本語表示できない環境で日本語曲をかけたいと�
 ```
 deno compile --allow-read --allow-env --allow-run ./main.ts
 
-./me78romajinizer hogehoge.m3u8 outputdir
+./m3u8romajinizer hogehoge.m3u8 outputdir
 ```
 
 直接実行するときは以下
