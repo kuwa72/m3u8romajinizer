@@ -6,7 +6,7 @@ import Analyzer from "npm:kuroshiro-analyzer-kuromoji@1.1.0";
 
 const args = Deno.args;
 console.log(args);
-const [m3uPath, outPath] = args;
+const [m3uPath] = args;
 if (!m3uPath) {
   console.error("No m3u path provided");
   Deno.exit(1);
@@ -14,8 +14,14 @@ if (!m3uPath) {
 
 const m3u = await Deno.readTextFile(m3uPath);
 
+// generate out path from m3u path
+const outPath = m3uPath
+  .replace(/\.m3u8?$/i, "")
+  .replace(/\\/g, "/")
+  .split("/")
+  .pop();
 if (!outPath) {
-  console.error("No out path provided");
+  console.error("Invalid m3u path");
   Deno.exit(1);
 }
 
@@ -23,6 +29,15 @@ Deno.permissions.query({ name: "write", path: outPath }).catch(() => {
   console.error("No write permission to out path");
   Deno.exit(1);
 });
+
+try {
+  await Deno.mkdir(outPath, { recursive: true });
+} catch (err) {
+  if (!(err instanceof Deno.errors.AlreadyExists)) {
+    throw err;
+  }
+  // ignore err if already exists
+}
 
 // check ffmpeg command from path, if not found, use current dir
 let ffmpegPath = "ffmpeg";
@@ -63,8 +78,8 @@ const toRome = async (str: string) => {
   str = str.replace(/\b\w/g, (c) => c.toUpperCase());
   // compress spaces
   str = str.replace(/\s+/g, " ");
-  // first 32 chars
-  return str.substring(0, 32);
+  // first 64 chars
+  return str.substring(0, 64);
 };
 
 targets.forEach(async (target: string) => {
@@ -96,12 +111,27 @@ targets.forEach(async (target: string) => {
   const filename = asciiSafe(rtitle) + " - " + asciiSafe(rartist) + "." + ext;
   const fullpath = outPath + "/" + filename;
 
+  try {
+    const fsinfo = await Deno.lstat(fullpath);
+    // remove empty files if exists, for reprocessing failed files
+    if (fsinfo.isFile && fsinfo.size == 0) {
+      await Deno.remove(fullpath);
+    } else {
+      return; // skip if file exists
+    }
+  } catch (err) {
+    if (!(err instanceof Deno.errors.NotFound)) {
+      throw err;
+    }
+    // generate new file if not exists
+  }
+
   //console.log("Processing ", fullpath);
 
   //console.log(    `command: ./ffmpeg -y -i ${target} -c:v copy -metadata title='${rtitle}' -metadata artist='${rartist}' ${fullpath}`  );
   const ffmpegCommand = new Deno.Command(ffmpegPath, {
     args: [
-      "-y",
+      "-n", // no overwrite, cause we check empty files
       "-i",
       target,
       "-c:v",

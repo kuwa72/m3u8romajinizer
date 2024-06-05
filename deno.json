@@ -1,5 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run --watch main.ts"
+    "dev": "deno run --watch main.ts",
+    "compile-win": "deno compile --allow-write --allow-read --allow-env --allow-run --unstable --target x86_64-pc-windows-msvc main.ts"
   }
 }

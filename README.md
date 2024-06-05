@@ -1,4 +1,5 @@
 # m3u8romajinizer
+
 For Japanese DJ tool, mp3/aac files metadata Romaji-nizer.
 
 # 概要
@@ -11,12 +12,13 @@ CDJ350など日本語表示できない環境で日本語曲をかけたいと�
 
 ## 必要なもの
 
-* Deno
-* ffmpeg
+- Deno
+- ffmpeg
 
 ## 実行方法
 
 ビルドする場合は以下
+
 ```
 deno compile --allow-read --allow-env --allow-run ./main.ts
 
@@ -24,6 +26,7 @@ deno compile --allow-read --allow-env --allow-run ./main.ts
 ```
 
 直接実行するときは以下
+
 ```
 deno run --allow-read --allow-env --allow-run .\main.ts  hogehoge.m3u8 outputdir
 ```
